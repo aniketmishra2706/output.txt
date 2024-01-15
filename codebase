@@ -1,0 +1,39 @@
+import pandas as pd
+
+def analyze_employees(file_path):
+   
+    df = pd.read_excel(file_path)  # Assuming it's an Excel file, adjust accordingly if it's a different format
+
+   
+    name_column = 'Name'
+    position_column = 'Position'
+    hours_column = 'Worked Hours'
+    date_column = 'Date'
+
+  
+    df[date_column] = pd.to_datetime(df[date_column])
+
+    
+    consecutive_days = 7
+    consecutive_days_employees = df.groupby(name_column).filter(lambda x: x[date_column].diff().dt.days.ge(consecutive_days - 1).any())
+
+    max_hours_between_shifts = 10
+    min_hours_between_shifts = 1
+    time_between_shifts_employees = df.groupby(name_column).filter(lambda x: x[date_column].diff().dt.total_seconds().div(3600).between(min_hours_between_shifts, max_hours_between_shifts).any())
+
+    max_hours_single_shift = 14
+    long_shift_employees = df[df[hours_column] > max_hours_single_shift]
+
+   
+    print("\nEmployees who have worked for 7 consecutive days:")
+    print(consecutive_days_employees[[name_column, position_column]])
+
+    print("\nEmployees who have less than 10 hours of time between shifts but greater than 1 hour:")
+    print(time_between_shifts_employees[[name_column, position_column]])
+
+    print("\nEmployees who have worked for more than 14 hours in a single shift:")
+    print(long_shift_employees[[name_column, position_column]])
+
+
+file_path = 'employees_data.xlsx'
+analyze_employees(file_path)
